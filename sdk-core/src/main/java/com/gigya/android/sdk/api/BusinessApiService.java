@@ -22,10 +22,8 @@ import com.gigya.android.sdk.reporting.ReportingManager;
 import com.gigya.android.sdk.schema.GigyaSchema;
 import com.gigya.android.sdk.session.ISessionService;
 import com.gigya.android.sdk.session.SessionInfo;
-import com.gigya.android.sdk.utils.AccountGSONDeserializer;
 import com.gigya.android.sdk.utils.DeviceUtils;
 import com.gigya.android.sdk.utils.ObjectUtils;
-import com.google.gson.GsonBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -219,68 +217,6 @@ public class BusinessApiService<A extends GigyaAccount> implements IBusinessApiS
     }
 
     /**
-     * Request login to specific social provider.
-     * Will begin a login flow comprised of two steps.
-     * 1. Social login with provider.
-     * 2. Login with the Gigya server.
-     *
-     * @param socialProvider     Requested social provider   {@link GigyaDefinitions.Providers}
-     * @param params             Request parameters.
-     * @param gigyaLoginCallback Login response callback.
-     */
-    @Override
-    public void login(@GigyaDefinitions.Providers.SocialProvider String socialProvider, Map<String, Object> params, final GigyaLoginCallback<A> gigyaLoginCallback) {
-        params.put("provider", socialProvider);  // Needed for non native providers.
-
-        IProvider provider = _providerFactory.providerFor(socialProvider, new ProviderCallback() {
-            @Override
-            public void onProviderSession(String providerName, SessionInfo sessionInfo, Runnable completionHandler) {
-                if (gigyaLoginCallback != null) {
-                    gigyaLoginCallback.onIntermediateLoad();
-                }
-                // Set new session.
-                _sessionService.setSession(sessionInfo);
-                completionHandler.run();
-                // Force fetch account.
-                _accountService.invalidateAccount();
-                getAccount(gigyaLoginCallback);
-            }
-
-            @Override
-            public void onProviderSessions(Map<String, Object> loginParams, Runnable completionHandler) {
-                if (gigyaLoginCallback != null) {
-                    gigyaLoginCallback.onIntermediateLoad();
-                }
-                notifyNativeSocialLogin(loginParams, gigyaLoginCallback, completionHandler);
-            }
-
-            @Override
-            public void onCanceled() {
-                if (gigyaLoginCallback != null) {
-                    gigyaLoginCallback.onOperationCanceled();
-                }
-            }
-
-            @Override
-            public void onError(GigyaApiResponse response) {
-                handleAccountApiResponse(response, gigyaLoginCallback);
-            }
-        });
-
-        if (params.containsKey("regToken")) {
-            final String regToken = (String) params.get("regToken");
-            provider.setRegToken(regToken);
-        }
-        String loginMode = "standard";
-        if (params.containsKey("loginMode")) {
-            loginMode = (String) params.get("loginMode");
-        }
-
-        // Perform provider login.
-        provider.login(params, loginMode);
-    }
-
-    /**
      * Request to verify the current session state.
      *
      * @param UID           Current user UID.
@@ -363,6 +299,72 @@ public class BusinessApiService<A extends GigyaAccount> implements IBusinessApiS
             }
         });
     }
+
+    //endregion
+
+    //region SOCIAL
+
+    /**
+     * Request login to specific social provider.
+     * Will begin a login flow comprised of two steps.
+     * 1. Social login with provider.
+     * 2. Login with the Gigya server.
+     *
+     * @param socialProvider     Requested social provider   {@link GigyaDefinitions.Providers}
+     * @param params             Request parameters.
+     * @param gigyaLoginCallback Login response callback.
+     */
+    @Override
+    public void login(@GigyaDefinitions.Providers.SocialProvider String socialProvider, Map<String, Object> params, final GigyaLoginCallback<A> gigyaLoginCallback) {
+        params.put("provider", socialProvider);  // Needed for non native providers.
+        IProvider provider = _providerFactory.providerFor(socialProvider, new ProviderCallback() {
+            @Override
+            public void onProviderSession(String providerName, SessionInfo sessionInfo, Runnable completionHandler) {
+                if (gigyaLoginCallback != null) {
+                    gigyaLoginCallback.onIntermediateLoad();
+                }
+                // Set new session.
+                _sessionService.setSession(sessionInfo);
+                completionHandler.run();
+                // Force fetch account.
+                _accountService.invalidateAccount();
+                getAccount(gigyaLoginCallback);
+            }
+
+            @Override
+            public void onProviderSessions(Map<String, Object> loginParams, Runnable completionHandler) {
+                if (gigyaLoginCallback != null) {
+                    gigyaLoginCallback.onIntermediateLoad();
+                }
+                notifyNativeSocialLogin(loginParams, gigyaLoginCallback, completionHandler);
+            }
+
+            @Override
+            public void onCanceled() {
+                if (gigyaLoginCallback != null) {
+                    gigyaLoginCallback.onOperationCanceled();
+                }
+            }
+
+            @Override
+            public void onError(GigyaApiResponse response) {
+                handleAccountApiResponse(response, gigyaLoginCallback);
+            }
+        });
+
+        // Perform provider login flow (web, sso).
+        if (params.containsKey("regToken")) {
+            final String regToken = (String) params.get("regToken");
+            provider.setRegToken(regToken);
+        }
+        String loginMode = "standard";
+        if (params.containsKey("loginMode")) {
+            loginMode = (String) params.get("loginMode");
+        }
+        // Perform provider login.
+        provider.login(params, loginMode);
+    }
+
 
     //endregion
 

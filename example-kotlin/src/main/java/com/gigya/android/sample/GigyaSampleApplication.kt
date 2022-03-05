@@ -29,6 +29,7 @@ class GigyaSampleApplication : Application() {
 
         Gigya.setApplication(this)
         Gigya.secureActivityWindow(true)
+        Gigya.setExternalProviderPath("social")
 
         // Initialization with implicit configuration & myAccountLiveData scheme.
         Gigya.getInstance(MyAccount::class.java)

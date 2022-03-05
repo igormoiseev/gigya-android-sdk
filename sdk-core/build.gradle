@@ -77,9 +77,6 @@ dependencies {
     compileOnly 'androidx.lifecycle:lifecycle-extensions:2.2.0'
 
     // Social provider supported libraries.
-    compileOnly 'com.linecorp:linesdk:5.1.1'
-    compileOnly 'com.facebook.android:facebook-android-sdk:11.2.0'
-    compileOnly 'com.google.android.gms:play-services-auth:18.1.0'
     compileOnly 'com.tencent.mm.opensdk:wechat-sdk-android-without-mta:5.5.3'
 
     // Optional network library.

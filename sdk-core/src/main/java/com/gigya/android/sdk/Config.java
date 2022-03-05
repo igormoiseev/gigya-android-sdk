@@ -20,6 +20,8 @@ public class Config {
     @SerializedName("account")
     private GigyaAccountConfig gigyaAccountConfig;
 
+    private String externalProvidersPath = "gigyaProviders";
+
     //region UPDATE
 
     public Config updateWith(String apiKey, String apiDomain) {
@@ -147,6 +149,14 @@ public class Config {
 
     public void setGigyaAccountConfig(GigyaAccountConfig gigyaAccountConfig) {
         this.gigyaAccountConfig = gigyaAccountConfig;
+    }
+
+    public String getExternalProvidersPath() {
+        return externalProvidersPath;
+    }
+
+    public void setExternalProvidersPath(String externalProvidersPath) {
+        this.externalProvidersPath = externalProvidersPath;
     }
 
     //endregion

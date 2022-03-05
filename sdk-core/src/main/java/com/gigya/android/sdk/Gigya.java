@@ -676,13 +676,26 @@ public class Gigya<T extends GigyaAccount> {
     //region NATIVE LOGIN
 
     /**
-     * Request reference to used Gigya social provider.
-     * Currently supported provider (GOOGLE, FACEBOOK, LINE, WECHAT).
+     * Set application path for external provider usage.
      *
-     * @param name Provider name.
-     * @return Provider reference or null if not available.
+     * @param path String path.
+     */
+    public static void setExternalProviderPath(String path) {
+        try {
+            getContainer().get(Config.class).setExternalProvidersPath(path);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    /**
+     * No longer in use.
+     * External provider code is now an integral part of the client application.
+     *
+     * @return null
      */
     @Nullable
+    @Deprecated
     public Provider getUsedSocialProvider(String name) {
         return _providerFactory.usedProviderFor(name);
     }

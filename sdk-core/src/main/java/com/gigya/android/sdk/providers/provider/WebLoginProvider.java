@@ -197,10 +197,6 @@ public class WebLoginProvider extends Provider {
     }
 
     private Pair<String, String> getPostRequest(Map<String, Object> loginParams) {
-        /* Remove if added. */
-        if (!loginParams.isEmpty())
-            loginParams.remove(FacebookProvider.LOGIN_BEHAVIOUR);
-
         final String url = "https://socialize." + _config.getApiDomain() + "/socialize.login";
         final TreeMap<String, Object> urlParams = new TreeMap<>();
         urlParams.put("redirect_uri", "gsapi://login_result");

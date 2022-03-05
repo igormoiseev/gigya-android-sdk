@@ -9,6 +9,7 @@ public interface IProviderFactory {
 
     Provider providerFor(String name, ProviderCallback providerCallback);
 
+    @Deprecated
     @Nullable
     Provider usedProviderFor(String name);
 
