@@ -2,6 +2,8 @@ package com.gigya.android.sample.social;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
@@ -24,7 +26,7 @@ import java.util.Map;
 
 public class GoogleProviderWrapper implements IProviderWrapper {
 
-    final String _clientId = "";
+    private String _clientId;
     private static final int RC_SIGN_IN = 0;
     private GoogleSignInClient _googleClient;
 
@@ -34,8 +36,24 @@ public class GoogleProviderWrapper implements IProviderWrapper {
         this.context = context;
     }
 
+    @Nullable
+    private String clientIdFromMetaData() {
+        String clientId = null;
+        try {
+            ApplicationInfo appInfo = this.context.getPackageManager().getApplicationInfo(this.context.getPackageName(), PackageManager.GET_META_DATA);
+            Bundle metaData = appInfo.metaData;
+            if (metaData.get("googleClientId") instanceof String) {
+                clientId = (String) metaData.get("googleClientId");
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return clientId;
+    }
+
     @Override
     public void login(Context context, final Map<String, Object> params, final IProviderWrapperCallback callback) {
+        _clientId = clientIdFromMetaData();
         if (_clientId == null) {
             callback.onFailed("Missing server client id. Check manifest implementation");
             return;
@@ -50,6 +68,11 @@ public class GoogleProviderWrapper implements IProviderWrapper {
         if (account != null) {
             // This option should not happen theoretically because we logout out explicitly.
             final Map<String, Object> loginMap = new HashMap<>();
+            final String code = account.getServerAuthCode();
+            if (code == null) {
+                GigyaLogger.error("GoogleProviderWrapper", "Server auth code null");
+                callback.onFailed("Error acquiring server auth code");
+            }
             loginMap.put("code", account.getServerAuthCode());
             callback.onLogin(loginMap);
             return;

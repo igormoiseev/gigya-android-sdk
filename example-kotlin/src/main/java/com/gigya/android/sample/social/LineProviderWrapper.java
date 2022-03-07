@@ -2,6 +2,8 @@ package com.gigya.android.sample.social;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
@@ -25,7 +27,7 @@ import java.util.Map;
 
 public class LineProviderWrapper implements IProviderWrapper {
 
-    final String lineChannelID = "";
+    private String lineChannelID = "";
 
     private static final int REQUEST_CODE = 1;
 
@@ -36,6 +38,21 @@ public class LineProviderWrapper implements IProviderWrapper {
         this.context = context;
     }
 
+    @Nullable
+    private String channelIdFromMetaData() {
+        String clientId = null;
+        try {
+            ApplicationInfo appInfo = this.context.getPackageManager().getApplicationInfo(this.context.getPackageName(), PackageManager.GET_META_DATA);
+            Bundle metaData = appInfo.metaData;
+            if (metaData.get("lineChannelID") instanceof String) {
+                clientId = (String) metaData.get("lineChannelID");
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return clientId;
+    }
+
     @Override
     public void login(Context context, Map<String, Object> params, IProviderWrapperCallback callback) {
         providerWrapperCallback = callback;
@@ -43,6 +60,8 @@ public class LineProviderWrapper implements IProviderWrapper {
             @Override
             public void onCreate(AppCompatActivity activity, @Nullable Bundle savedInstanceState) {
                 // Fetch channel Id from meta-data.
+                lineChannelID = channelIdFromMetaData();
+
                 if (lineChannelID == null) {
                     // Fail login.
                     callback.onFailed("Channel Id not available");

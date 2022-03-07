@@ -15,13 +15,16 @@ import com.gigya.android.sdk.session.SessionInfo;
 
 import org.json.JSONObject;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 public class ExternalProvider extends Provider {
 
     private static final String LOG_TAG = "ProviderManager";
 
-    final private IoCContainer providerContainer = new IoCContainer();
+    private IoCContainer providerContainer;
+
+    private IProviderWrapper wrapper;
 
     private final Context _context;
 
@@ -33,6 +36,26 @@ public class ExternalProvider extends Provider {
                             ProviderCallback providerCallback) {
         super(context, persistenceService, providerCallback);
         _context = context;
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Nullable
+    public IProviderWrapper getWrapper() {
+        try {
+            final Class clazz = getWrapperClass(_context, name, providersRoot);
+            if (clazz != null) {
+                final IProviderWrapper wrapper = (IProviderWrapper) providerContainer.get(clazz);
+                return wrapper;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void init(IoCContainer container) {
+        providerContainer = container.clone();
+        wrapper = instantiateProvider(getName());
     }
 
     /***
@@ -76,7 +99,7 @@ public class ExternalProvider extends Provider {
             final Class clazz = getWrapperClass(_context, provider, providersRoot);
             if (clazz != null) {
                 final IProviderWrapper wrapper = (IProviderWrapper) providerContainer.createInstance(clazz);
-                providerContainer.bind(clazz, clazz, true);
+                providerContainer.bind(clazz, wrapper);
                 return wrapper;
             }
         } catch (Exception ex) {
@@ -98,7 +121,7 @@ public class ExternalProvider extends Provider {
                     return new JSONObject()
                             .put("facebook", new JSONObject()
                                     .put("authToken", facebookToken).put("tokenExpiration", facebookExpiration)).toString();
-                case "goolge":
+                case "google":
                 case "googleplus":
                     final String googleCode = (String) providerLoginMap.get("code");
                     return new JSONObject()
@@ -129,7 +152,6 @@ public class ExternalProvider extends Provider {
 
     @Override
     public void login(Map<String, Object> loginParams, final String loginMode) {
-        IProviderWrapper wrapper = instantiateProvider(name);
         if (wrapper == null) {
             //TODO: Error - missing provider.
             GigyaLogger.error(LOG_TAG, "Requested login from provider that cannot be instantiated");

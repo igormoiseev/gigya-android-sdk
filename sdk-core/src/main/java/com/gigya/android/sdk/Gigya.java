@@ -688,14 +688,7 @@ public class Gigya<T extends GigyaAccount> {
         }
     }
 
-    /**
-     * No longer in use.
-     * External provider code is now an integral part of the client application.
-     *
-     * @return null
-     */
     @Nullable
-    @Deprecated
     public Provider getUsedSocialProvider(String name) {
         return _providerFactory.usedProviderFor(name);
     }

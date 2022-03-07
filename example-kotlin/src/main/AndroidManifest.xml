@@ -36,7 +36,8 @@
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
             android:theme="@style/Theme.AppCompat.Translucent" />
 
-        <activity android:name="com.gigya.android.sdk.providers.sso.GigyaSSOLoginActivity"
+        <activity
+            android:name="com.gigya.android.sdk.providers.sso.GigyaSSOLoginActivity"
             android:exported="true"
             android:launchMode="singleTask">
 
@@ -70,11 +71,6 @@
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             tools:replace="android:theme" />
 
-        <activity
-            android:name=".wxapi.WXEntryActivity"
-            android:label="@string/app_name"
-            android:launchMode="singleTop" />
-
         <!-- WeChat integration -->
         <activity
             android:name=".ui.BiometricPushTFAActivity"
@@ -98,22 +94,27 @@
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize" />
 
-        <!-- Line integration -->
+        <!-- Facebook integration -->
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_app_id" />
 
-        <!-- Google integration -->
+        <!-- WeChat integration -->
         <meta-data
             android:name="wechatAppID"
             android:value="@string/wechatAppID" />
 
-        <!-- Gigya TFA messaging service -->
+        <activity
+            android:name=".wxapi.WXEntryActivity"
+            android:exported="true"
+            android:theme="@style/AppTheme" />
+
+        <!-- Line integration -->
         <meta-data
             android:name="lineChannelID"
             android:value="@string/line_Channel_ID" />
 
-        <!-- Gigya TFA display activity -->
+        <!-- Google integration -->
         <meta-data
             android:name="googleClientId"
             android:value="@string/google_client_id" />

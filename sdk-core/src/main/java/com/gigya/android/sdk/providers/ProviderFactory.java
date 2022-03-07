@@ -12,17 +12,12 @@ import com.gigya.android.sdk.providers.provider.Provider;
 import com.gigya.android.sdk.providers.provider.ProviderCallback;
 import com.gigya.android.sdk.providers.provider.SSOProvider;
 import com.gigya.android.sdk.providers.provider.WebLoginProvider;
-import com.gigya.android.sdk.utils.FileUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.gigya.android.sdk.GigyaDefinitions.Providers.FACEBOOK;
 import static com.gigya.android.sdk.GigyaDefinitions.Providers.SSO;
-import static com.gigya.android.sdk.GigyaDefinitions.Providers.GOOGLE;
-import static com.gigya.android.sdk.GigyaDefinitions.Providers.LINE;
-import static com.gigya.android.sdk.GigyaDefinitions.Providers.WECHAT;
 
 public class ProviderFactory implements IProviderFactory {
     final private IoCContainer _container;
@@ -39,7 +34,6 @@ public class ProviderFactory implements IProviderFactory {
     public ProviderFactory(IoCContainer container,
                            Context context,
                            Config config,
-                           FileUtils fileUtils,
                            IPersistenceService persistenceService) {
         _container = container;
         _context = context;
@@ -47,12 +41,15 @@ public class ProviderFactory implements IProviderFactory {
         _psService = persistenceService;
     }
 
+
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public Provider providerFor(String name, ProviderCallback providerCallback) {
         final IoCContainer tempContainer =
                 _container.clone();
-        tempContainer.bind(ProviderCallback.class, providerCallback);
+        if (providerCallback != null) {
+            tempContainer.bind(ProviderCallback.class, providerCallback);
+        }
 
         try {
             if (isExternalProvider(name)) {
@@ -60,6 +57,7 @@ public class ProviderFactory implements IProviderFactory {
                 final String rootPath = _config.getExternalProvidersPath();
                 externalProvider.setProviderName(name);
                 externalProvider.setProvidersRoot(rootPath);
+                externalProvider.init(_container);
                 final Class externalProviderClazz = ExternalProvider.getWrapperClass(_context, name, rootPath);
                 if (externalProviderClazz != null) {
                     _container.bind(externalProviderClazz, externalProvider);
@@ -84,9 +82,22 @@ public class ProviderFactory implements IProviderFactory {
      * No longer in use.
      * External provider wrapper code is not a part of the client application.
      */
-    @Deprecated
     @Override
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public Provider usedProviderFor(String name) {
+        Class<Provider> providerClazz;
+        try {
+            if (isExternalProvider(name)) {
+                final String rootPath = _config.getExternalProvidersPath();
+                providerClazz = ExternalProvider.getWrapperClass(_context, name, rootPath);
+            } else {
+                providerClazz = getProviderClass(name);
+            }
+            return _container.get(providerClazz);
+        } catch (Exception e) {
+            GigyaLogger.error(LOG_TAG, "Error instantiating used provider");
+            e.printStackTrace();
+        }
         return null;
     }
 
