@@ -2,8 +2,6 @@ package com.gigya.android.sample.social;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
@@ -12,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.gigya.android.sdk.providers.external.IProviderWrapper;
 import com.gigya.android.sdk.providers.external.IProviderWrapperCallback;
+import com.gigya.android.sdk.providers.external.ProviderWrapper;
 import com.gigya.android.sdk.ui.HostActivity;
 import com.linecorp.linesdk.LineApiResponse;
 import com.linecorp.linesdk.Scope;
@@ -25,9 +24,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class LineProviderWrapper implements IProviderWrapper {
-
-    private String lineChannelID = "";
+public class LineProviderWrapper extends ProviderWrapper implements IProviderWrapper {
 
     private static final int REQUEST_CODE = 1;
 
@@ -35,22 +32,8 @@ public class LineProviderWrapper implements IProviderWrapper {
     final Context context;
 
     LineProviderWrapper(Context context) {
+        super(context, "lineChannelID");
         this.context = context;
-    }
-
-    @Nullable
-    private String channelIdFromMetaData() {
-        String clientId = null;
-        try {
-            ApplicationInfo appInfo = this.context.getPackageManager().getApplicationInfo(this.context.getPackageName(), PackageManager.GET_META_DATA);
-            Bundle metaData = appInfo.metaData;
-            if (metaData.get("lineChannelID") instanceof String) {
-                clientId = (String) metaData.get("lineChannelID");
-            }
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        return clientId;
     }
 
     @Override
@@ -59,10 +42,7 @@ public class LineProviderWrapper implements IProviderWrapper {
         HostActivity.present(context, new HostActivity.HostActivityLifecycleCallbacks() {
             @Override
             public void onCreate(AppCompatActivity activity, @Nullable Bundle savedInstanceState) {
-                // Fetch channel Id from meta-data.
-                lineChannelID = channelIdFromMetaData();
-
-                if (lineChannelID == null) {
+                if (pId == null) {
                     // Fail login.
                     callback.onFailed("Channel Id not available");
                     activity.finish();
@@ -71,7 +51,7 @@ public class LineProviderWrapper implements IProviderWrapper {
 
                 Intent loginIntent = LineLoginApi.getLoginIntent(
                         activity,
-                        lineChannelID,
+                        pId,
                         new LineAuthenticationParams.Builder()
                                 .scopes(Arrays.asList(Scope.PROFILE))
                                 .build());
@@ -112,7 +92,7 @@ public class LineProviderWrapper implements IProviderWrapper {
 
     @Override
     public void logout() {
-        LineApiClientBuilder builder = new LineApiClientBuilder(context, lineChannelID);
+        LineApiClientBuilder builder = new LineApiClientBuilder(context, pId);
         LineApiClient client = builder.build();
         new LogoutTask(client).execute();
     }

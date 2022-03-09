@@ -16,6 +16,7 @@ import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.gigya.android.sdk.providers.external.IProviderWrapper;
 import com.gigya.android.sdk.providers.external.IProviderWrapperCallback;
+import com.gigya.android.sdk.providers.external.ProviderWrapper;
 import com.gigya.android.sdk.ui.HostActivity;
 
 import java.util.Arrays;
@@ -24,11 +25,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class FacebookProviderWrapper implements IProviderWrapper {
+public class FacebookProviderWrapper extends ProviderWrapper implements IProviderWrapper {
 
     private static final String[] DEFAULT_READ_PERMISSIONS = {"email"};
 
     private final CallbackManager callbackManager = CallbackManager.Factory.create();
+
+    public FacebookProviderWrapper(Context context) {
+        super(context, "com.facebook.sdk.ApplicationId");
+    }
 
     @Override
     public void login(Context context, final Map<String, Object> params, final IProviderWrapperCallback wrapperCallback) {

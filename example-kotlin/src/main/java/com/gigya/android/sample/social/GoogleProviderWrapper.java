@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.gigya.android.sdk.GigyaLogger;
 import com.gigya.android.sdk.providers.external.IProviderWrapper;
 import com.gigya.android.sdk.providers.external.IProviderWrapperCallback;
+import com.gigya.android.sdk.providers.external.ProviderWrapper;
 import com.gigya.android.sdk.ui.HostActivity;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -24,42 +25,26 @@ import com.google.android.gms.tasks.Task;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GoogleProviderWrapper implements IProviderWrapper {
+public class GoogleProviderWrapper extends ProviderWrapper implements IProviderWrapper {
 
-    private String _clientId;
     private static final int RC_SIGN_IN = 0;
     private GoogleSignInClient _googleClient;
 
     final Context context;
 
     GoogleProviderWrapper(Context context) {
+        super(context, "googleClientId");
         this.context = context;
-    }
-
-    @Nullable
-    private String clientIdFromMetaData() {
-        String clientId = null;
-        try {
-            ApplicationInfo appInfo = this.context.getPackageManager().getApplicationInfo(this.context.getPackageName(), PackageManager.GET_META_DATA);
-            Bundle metaData = appInfo.metaData;
-            if (metaData.get("googleClientId") instanceof String) {
-                clientId = (String) metaData.get("googleClientId");
-            }
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        return clientId;
     }
 
     @Override
     public void login(Context context, final Map<String, Object> params, final IProviderWrapperCallback callback) {
-        _clientId = clientIdFromMetaData();
-        if (_clientId == null) {
+        if (pId == null) {
             callback.onFailed("Missing server client id. Check manifest implementation");
             return;
         }
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestServerAuthCode(_clientId)
+                .requestServerAuthCode(pId)
                 .requestEmail()
                 .build();
         _googleClient = GoogleSignIn.getClient(context, gso);
@@ -131,12 +116,12 @@ public class GoogleProviderWrapper implements IProviderWrapper {
     @Override
     public void logout() {
         if (_googleClient == null) {
-            if (_clientId == null) {
+            if (pId == null) {
                 GigyaLogger.error("GoogleLoginProvider", "provider client id unavailable for logout");
                 return;
             }
             GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestServerAuthCode(_clientId)
+                    .requestServerAuthCode(pId)
                     .requestEmail()
                     .build();
             _googleClient = GoogleSignIn.getClient(context, gso);

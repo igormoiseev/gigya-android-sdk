@@ -3,8 +3,6 @@ package com.gigya.android.sample.social;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
@@ -13,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.gigya.android.sdk.GigyaLogger;
 import com.gigya.android.sdk.providers.external.IProviderWrapper;
 import com.gigya.android.sdk.providers.external.IProviderWrapperCallback;
+import com.gigya.android.sdk.providers.external.ProviderWrapper;
 import com.gigya.android.sdk.ui.HostActivity;
 import com.tencent.mm.opensdk.modelbase.BaseResp;
 import com.tencent.mm.opensdk.modelmsg.SendAuth;
@@ -23,35 +22,19 @@ import com.tencent.mm.opensdk.openapi.WXAPIFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-public class WechatProviderWrapper implements IProviderWrapper {
+public class WechatProviderWrapper extends ProviderWrapper implements IProviderWrapper {
 
-    private final String _appId;
     private IWXAPI _api;
     private BaseResp _resp;
 
     public WechatProviderWrapper(Context context) {
-        _appId = AppIdFromMetaData(context);
-        if (_appId != null) {
-            _api = WXAPIFactory.createWXAPI(context, _appId, true);
-            _api.registerApp(_appId);
+        super(context, "wechatAppID");
+        if (pId != null) {
+            _api = WXAPIFactory.createWXAPI(context, pId, true);
+            _api.registerApp(pId);
         } else {
             GigyaLogger.error("WechatProviderWrapper", "Missing App ID.");
         }
-    }
-
-    @Nullable
-    private String AppIdFromMetaData(Context context) {
-        String clientId = null;
-        try {
-            ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
-            Bundle metaData = appInfo.metaData;
-            if (metaData.get("wechatAppID") instanceof String) {
-                clientId = (String) metaData.get("wechatAppID");
-            }
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        return clientId;
     }
 
     @Override
@@ -94,7 +77,7 @@ public class WechatProviderWrapper implements IProviderWrapper {
                     final String authCode = sendResp.code;
                     final Map<String, Object> loginMap = new HashMap<>();
                     loginMap.put("code", authCode);
-                    loginMap.put("uid", _appId);
+                    loginMap.put("uid", pId);
                     callback.onLogin(loginMap);
                 } catch (Exception e) {
                     e.printStackTrace();
