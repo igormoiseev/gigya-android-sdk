@@ -1,6 +1,5 @@
 package com.gigya.android.sample.wxapi;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -36,7 +35,6 @@ public class WXEntryActivity extends AppCompatActivity implements IWXAPIEventHan
         if (provider != null) {
             provider.handleIntent(getIntent(), this);
         }
-        //finish();
     }
 
     @Override

@@ -10,7 +10,6 @@ import com.gigya.android.sdk.providers.ProviderFactory;
 import com.gigya.android.sdk.providers.provider.IProvider;
 import com.gigya.android.sdk.providers.provider.Provider;
 import com.gigya.android.sdk.providers.provider.ProviderCallback;
-import com.gigya.android.sdk.providers.provider.WeChatProvider;
 import com.gigya.android.sdk.providers.provider.WebLoginProvider;
 import com.gigya.android.sdk.utils.FileUtils;
 
